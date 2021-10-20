@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kakaobank_api.kakaobank_api.dao.TransferInfoDao"> 
+
+<!--이체 정보 DB에 관련 내용 삽입 -->
+<insert id="insertTransferInfo" parameterType="kakaobank_api.kakaobank_api.dto.TransferInfo" > 
+    insert into transfer_info ( cusno,transfer_date,transfer_time,transaction_num,transfer_state,withdrawal_account, withdrawal_amount,receiver_num,receiver_account,receiver_account_bankcode ) values ( #{cusno}, #{transfer_date}, #{transfer_time}, #{transaction_num},#{transfer_step}, #{withdrawal_account}, #{withdrawal_amount}, '','','')
+</insert>
+
+<insert id="insertTransferWait" parameterType="kakaobank_api.kakaobank_api.dto.TransferInfo">
+    insert into transfer_wait ( cusno,transaction_num,transfer_date,transfer_time,wait_state) values ( #{cusno}, #{transaction_num}, #{transfer_date}, #{transfer_time}, #{transfer_step})
+</insert>
+<!-- 현재 상태에 따른 이체 정보 DB상태 변경  -->
+<update id="updateStateTransferInfo" parameterType="kakaobank_api.kakaobank_api.dto.TransferInfo" >
+    update transfer_info set lst_transfer_time =#{lst_transfer_time} , lst_transfer_date=#{lst_transfer_date}, transfer_state=#{transfer_step} 
+    where transfer_date=#{transfer_date} and transfer_time=#{transfer_time} and transaction_num=#{transaction_num}
+</update>
+
+<!--입금인 정보 입력 -->
+<update id="updateReceiverData" parameterType="kakaobank_api.kakaobank_api.dto.ReceiverDataInfo" >
+    update transfer_info set receiver_account =#{receiver_account} , receiver_account_bankcode=#{receiver_account_bankcode}, transfer_state=#{transfer_state} 
+    where transfer_time=#{transfer_time} and transfer_time=#{transfer_time} and transaction_num=#{transaction_num}
+</update>
+
+<!--이체받기 정보 입력 -->
+<update id="receiveMoney" parameterType="kakaobank_api.kakaobank_api.dto.TransferInfo" >
+    update transfer_info set receiver_account =#{receiver_account} , receiver_account_bankcode=#{receiver_account_bankcode}, transfer_state=#{transfer_state} 
+    where transfer_time=#{transfer_time} and transfer_time=#{transfer_time} and transaction_num=#{transaction_num} and withdrawal_amount=#{withdrawal_amount}
+</update>
+
+<!--이체 완료 또는 취소시 상주데몬용 DB에서 삭제 -->
+<delete id="deleteTempTransaction" parameterType="kakaobank_api.kakaobank_api.dto.TransferInfo"> 
+    DELETE from transfer_wait where transfer_date = #{transfer_date} and transfer_time = #{transfer_time} and transaction_num=#{transaction_num} 
+</delete>
+
+<!--이체 관리 DB에서 계좌 내용 검색-->
+<select id="selectTransferState" parameterType="kakaobank_api.kakaobank_api.dto.TransferInfo"> 
+    SELECT tranfer_state FROM transfer_info where transfer_date = #{transfer_date} and transfer_time = #{transfer_time} and transaction_num=#{transaction_num}
+</select>
+
+</mapper>
